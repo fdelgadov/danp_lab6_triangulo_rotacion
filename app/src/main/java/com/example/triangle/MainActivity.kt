@@ -10,6 +10,8 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableDoubleStateOf
 import com.example.triangle.ui.theme.TriangleTheme
 import java.util.Arrays
 
@@ -24,12 +26,15 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private val rotationMatrix = FloatArray(9)
     private val orientationAngles = FloatArray(3)
 
+    private var _orientationZ = mutableDoubleStateOf(.0)
+    private val orientationZ: State<Double> = _orientationZ
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             TriangleTheme {
-                TriangleRotation()
+                TriangleRotation(_orientationZ)
             }
         }
 
@@ -38,12 +43,15 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         Thread {
             while (true) {
                 try {
-                    Thread.sleep(1000)
+                    // Thread.sleep(500)
                     updateOrientationAngles()
                     Log.d("SensorData", "Accelerometer Reading: ${accelerometerReading.contentToString()}")
                     Log.d("SensorData", "Magnetometer Reading: ${magnetometerReading.contentToString()}")
                     Log.d("SensorData", "Rotation Matrix: ${rotationMatrix.contentToString()}")
                     Log.d("SensorData", "Orientation Angles: ${orientationAngles.contentToString()}")
+                    Log.d("SensorData", "Orientation Angles Z: ${Math.toDegrees(orientationAngles[0].toDouble())}")
+                    Log.d("SensorData", "Orientation Angles X: ${Math.toDegrees(orientationAngles[1].toDouble())}")
+                    Log.d("SensorData", "Orientation Angles Y: ${Math.toDegrees(orientationAngles[2].toDouble())}")
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
                 }
@@ -58,7 +66,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 accelerometer,
-                SensorManager.SENSOR_DELAY_NORMAL,
+                SensorManager.SENSOR_DELAY_FASTEST,
                 SensorManager.SENSOR_DELAY_UI
             )
         }
@@ -66,7 +74,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 magneticField,
-                SensorManager.SENSOR_DELAY_NORMAL,
+                SensorManager.SENSOR_DELAY_FASTEST,
                 SensorManager.SENSOR_DELAY_UI
             )
         }
@@ -86,6 +94,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             magnetometerReading
         )
         SensorManager.getOrientation(rotationMatrix, orientationAngles)
+
+        _orientationZ.value = orientationAngles[0].toDouble()
     }
 
     override fun onSensorChanged(event: SensorEvent) {

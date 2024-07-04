@@ -1,15 +1,19 @@
 package com.example.triangle
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
@@ -26,17 +30,10 @@ import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
 
+val tag = "TriangleRotation"
 @Composable
-fun TriangleRotation() {
-    var rotationAngle by remember { mutableDoubleStateOf(.0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(100)
-            rotationAngle += 10
-            if (rotationAngle > 360) rotationAngle -= 360
-        }
-    }
+fun TriangleRotation(orientationZ: MutableState<Double>) {
+    var rotationAngle by remember { orientationZ }
 
     BoxWithConstraints {
         Canvas(
@@ -64,17 +61,19 @@ fun TriangleRotation() {
                 p3
             )
 
-            val rARadians = Math.toRadians(rotationAngle)
-            drawTriangle(rotateVertices(vertices, center, rARadians))
+            Log.d(tag, "$rotationAngle")
+            drawTriangle(rotateVertices(vertices, center, -rotationAngle))
         }
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview(showBackground = true)
 @Composable
 fun TriangleRotationPreview() {
+    var _orientationZ = mutableDoubleStateOf(.0)
     TriangleTheme {
-        TriangleRotation()
+        TriangleRotation(_orientationZ)
     }
 }
 
